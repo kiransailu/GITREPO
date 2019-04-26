@@ -7,11 +7,11 @@ which is normally the name of the shell executable, with a “-” character pre
 For example, for Bash shell it will be -bash.
 
 When Bash is invoked as a Login shell;
- *Login process calls /etc/profile
- */etc/profile calls the scripts in /etc/profile.d/
- *Login process calls ~/.bash_profile
- *~/.bash_profile calls ~/i.bashrc
- *~/.bashrc calls /etc/bashrc
+ 1. Login process calls /etc/profile
+ 2. /etc/profile calls the scripts in /etc/profile.d/
+ 3. Login process calls ~/.bash_profile
+ 4. ~/.bash_profile calls ~/i.bashrc
+ 5. ~/.bashrc calls /etc/bashrc
 
 A Login shell can be recognized by the following procedure.
 Execute the below command in shell.
