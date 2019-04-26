@@ -1,7 +1,6 @@
 # GITREPO
 This is a basic GIT Repo.In this we are going the lean the basic opernation of the GIT. 
 
-#**RAVIKIRAN**
 ## Case-1: 
  What are the steps to be followed in order to make changes in the existing repo. 
 
