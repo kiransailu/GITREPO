@@ -7,11 +7,11 @@ which is normally the name of the shell executable, with a “-” character pre
 For example, for Bash shell it will be -bash.
 
 When Bash is invoked as a Login shell;
- -Login process calls /etc/profile
- -/etc/profile calls the scripts in /etc/profile.d/
- -Login process calls ~/.bash_profile
- -~/.bash_profile calls ~/i.bashrc
- -~/.bashrc calls /etc/bashrc
+ *Login process calls /etc/profile
+ */etc/profile calls the scripts in /etc/profile.d/
+ *Login process calls ~/.bash_profile
+ *~/.bash_profile calls ~/i.bashrc
+ *~/.bashrc calls /etc/bashrc
 
 A Login shell can be recognized by the following procedure.
 Execute the below command in shell.
@@ -26,9 +26,9 @@ In this case, the program just passes the name of the shell executable.
 For example, for a Bash shell it will be simply bash.
 
 When bash is invoked as a Non login shell;
- -Non-login process(shell) calls ~/.bashrc
- -~/.bashrc calls /etc/bashrc
- -/etc/bashrc calls the scripts in /etc/profile.d/
+ *Non-login process(shell) calls ~/.bashrc
+ *~/.bashrc calls /etc/bashrc
+ */etc/bashrc calls the scripts in /etc/profile.d/
 
 Non login shells include the following.
 • Shells created using the below command syntax.
