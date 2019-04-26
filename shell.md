@@ -26,9 +26,9 @@ In this case, the program just passes the name of the shell executable.
 For example, for a Bash shell it will be simply bash.
 
 When bash is invoked as a Non login shell;
- *Non-login process(shell) calls ~/.bashrc
- *~/.bashrc calls /etc/bashrc
- */etc/bashrc calls the scripts in /etc/profile.d/
+ 1. Non-login process(shell) calls ~/.bashrc
+ 2. ~/.bashrc calls /etc/bashrc
+ 3. /etc/bashrc calls the scripts in /etc/profile.d/
 
 Non login shells include the following.
 • Shells created using the below command syntax.
