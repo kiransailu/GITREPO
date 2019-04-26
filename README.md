@@ -18,5 +18,13 @@ This is a basic GIT Repo.In this we are going the lean the basic opernation of t
  ## Case-2:
 
 
+## Basic GIT Commands 
 
+    `git config` :                                                                             :`git config --global user.email sam@google.com`
+    `git init`   : *This command is used to create a new GIT repository*                       :`git init $nameof the repo`
+    `git add`    : *The git add command can be used in order to add files to the index*        :`git add tmp.txt`
+    `git clone`  : *The git clone command is used for repository checking out purposes*        :`git clone $URL`
+    `git commit` : *The git commit command is used to commit the changes to the head.*         :`git commit –m “Message to go with the commit here”`
+    `git push`   : *A simple push sends the made changes to the master branch *                : git push origin $branchname
+    i
 
