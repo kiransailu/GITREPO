@@ -1,0 +1,63 @@
+# AIX File Change Monitor Extension Configuration
+
+# Metric prefix for AppDynamics
+metricPrefix: "Custom Metrics|AIX File Change Monitor|"
+
+# URL to fetch centralized configuration (supports {inventory_hostname} placeholder)
+configUrl: "https://raw.githubusercontent.com/your-org/file-monitoring-configs/main/{inventory_hostname}.json"
+
+# Number of threads for processing
+numberOfThreads: 2
+
+# Task schedule in seconds
+taskSchedule:
+  numberOfThreads: 2
+  taskDelaySeconds: 60
+
+# Metric write helper configuration
+metricWriteHelper:
+  metricPrefix: "Custom Metrics|AIX File Change Monitor|"
+  
+# Servers configuration (required by base monitor)
+servers:
+  - host: "localhost"
+    port: 8080
+    useSSL: false
+
+# Metrics configuration
+metrics:
+  - Exists:
+      alias: "File Exists"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Size (Bytes):
+      alias: "File Size (Bytes)"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Last Modified Time:
+      alias: "Last Modified Time"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Recently Modified:
+      alias: "Recently Modified"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Modified Since Last Check:
+      alias: "Modified Since Last Check"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Size Change (Bytes):
+      alias: "Size Change (Bytes)"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Seconds Since Last Modified:
+      alias: "Seconds Since Last Modified"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
