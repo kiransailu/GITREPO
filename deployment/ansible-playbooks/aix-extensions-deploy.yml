@@ -1,0 +1,205 @@
+---
+- name: Deploy AppDynamics AIX Extensions
+  hosts: all
+  become: yes
+  vars:
+    machine_agent_home: "/opt/appdynamics/machine-agent"
+    user: "appdynamics"
+    install_group: "appdynamics"
+    extensions_to_deploy:
+      - name: "process-monitor"
+        zip_file: "aix-process-monitor-dist.zip"
+        extracted_dir: "AIXProcessMonitor"
+        config_url: "https://raw.githubusercontent.com/your-org/process-monitoring-configs/main/{{ inventory_hostname }}.json"
+      - name: "nfs-monitor"
+        zip_file: "aix-nfs-monitor-dist.zip"
+        extracted_dir: "AIXNFSMonitor"
+        config_url: "https://raw.githubusercontent.com/your-org/nfs-monitoring-configs/main/{{ inventory_hostname }}.json"
+      - name: "service-monitor"
+        zip_file: "aix-service-monitor-dist.zip"
+        extracted_dir: "AIXServiceMonitor"
+        config_url: "https://raw.githubusercontent.com/your-org/service-monitoring-configs/main/{{ inventory_hostname }}.json"
+      - name: "file-change-monitor"
+        zip_file: "aix-file-change-monitor-dist.zip"
+        extracted_dir: "AIXFileChangeMonitor"
+        config_url: "https://raw.githubusercontent.com/your-org/file-monitoring-configs/main/{{ inventory_hostname }}.json"
+
+  tasks:
+    # Step 1: Deploy AIX Extensions
+    - name: "Step 1: Copy and Unzip AIX Extensions"
+      block:
+        - name: Copy AIX extension zip files to temp directory
+          copy:
+            src: "../artifacts/{{ item.zip_file }}"
+            dest: "/tmp/{{ item.zip_file }}"
+            owner: "{{ user }}"
+            group: "{{ install_group }}"
+            mode: '0644'
+          loop: "{{ extensions_to_deploy }}"
+          when: deploy_extensions | default(true)
+
+        - name: Create monitors directory if not exists
+          file:
+            path: "{{ machine_agent_home }}/monitors"
+            state: directory
+            owner: "{{ user }}"
+            group: "{{ install_group }}"
+            mode: '0755'
+
+        - name: Unzip AIX extensions to monitors directory
+          unarchive:
+            src: "/tmp/{{ item.zip_file }}"
+            dest: "{{ machine_agent_home }}/monitors"
+            owner: "{{ user }}"
+            group: "{{ install_group }}"
+            remote_src: yes
+          loop: "{{ extensions_to_deploy }}"
+          when: deploy_extensions | default(true)
+
+    # Step 2: Download Host-Specific JSON Configuration
+    - name: "Step 2: Download Host-Specific JSON Configuration"
+      block:
+        - name: Download host-specific configuration files
+          uri:
+            url: "{{ item.config_url }}"
+            method: GET
+            return_content: yes
+          register: extension_configs
+          loop: "{{ extensions_to_deploy }}"
+          when: deploy_extensions | default(true)
+
+        - name: Parse JSON configurations
+          set_fact:
+            parsed_configs: "{{ parsed_configs | default({}) | combine({item.item.name: item.content | from_json}) }}"
+          loop: "{{ extension_configs.results }}"
+          when: deploy_extensions | default(true) and item.status == 200
+
+    # Step 3: Update extension configurations
+    - name: "Step 3: Update Extension Configurations"
+      block:
+        - name: Update config.yml files with centralized configuration URLs
+          template:
+            src: "../templates/{{ item.name }}-config.yml.j2"
+            dest: "{{ machine_agent_home }}/monitors/{{ item.extracted_dir }}/config.yml"
+            owner: "{{ user }}"
+            group: "{{ install_group }}"
+            mode: '0644'
+          loop: "{{ extensions_to_deploy }}"
+          vars:
+            config_url: "{{ item.config_url }}"
+          when: deploy_extensions | default(true)
+
+    # Step 4: Restart Machine Agent Service
+    - name: "Step 4: Restart Machine Agent Service"
+      block:
+        - name: Stop AppDynamics Machine Agent
+          command: stopsrc -s appdynamics_machine_agent || true
+          ignore_errors: yes
+
+        - name: Start AppDynamics Machine Agent
+          command: startsrc -s appdynamics_machine_agent
+
+        - name: Wait for Machine Agent to start
+          wait_for:
+            timeout: 30
+
+        - name: Verify Machine Agent is running
+          command: lssrc -s appdynamics_machine_agent
+          register: agent_status
+
+        - name: Display agent status
+          debug:
+            msg: "Machine Agent Status: {{ agent_status.stdout }}"
+
+    # Step 5: Health Rules Configuration (Optional)
+    - name: "Step 5: Health Rules Configuration Push"
+      block:
+        - name: Get controller and tier information from servers.json
+          slurp:
+            src: "{{ machine_agent_home }}/conf/servers.json"
+          register: servers_json
+          ignore_errors: yes
+          when: health_rules | default(false)
+
+        - name: Parse servers.json for controller info
+          set_fact:
+            controller_info: "{{ (servers_json.content | b64decode | from_json) }}"
+          when: health_rules | default(false) and servers_json.content is defined
+
+        - name: Fallback - Get controller info from controller-info.xml
+          xml:
+            path: "{{ machine_agent_home }}/conf/controller-info.xml"
+            xpath: "//controller-info"
+            content: attribute
+          register: controller_xml
+          when: health_rules | default(false) and controller_info is not defined
+
+        - name: Set controller information from XML
+          set_fact:
+            tier_name: "{{ controller_xml.matches[0]['controller-info']['application-name'] | default('') }}"
+            controller_url: "{{ controller_xml.matches[0]['controller-info']['controller-host'] | default('') }}"
+          when: health_rules | default(false) and controller_xml.matches is defined
+
+    # Step 6: Update JSON with Controller/Tier and Push to Git (Optional)
+    - name: "Step 6: Update JSON with Controller/Tier and Push to Git"
+      block:
+        - name: Clone health rules repository
+          git:
+            repo: "https://{{ ansible_git_token }}@github.com/your-org/aix-monitoring-healthrules.git"
+            dest: "/tmp/healthrules-repo"
+            version: main
+          delegate_to: localhost
+          run_once: true
+          when: health_rules | default(false)
+
+        - name: Create updated configuration with controller info
+          template:
+            src: "../templates/health-rules-config.json.j2"
+            dest: "/tmp/{{ inventory_hostname }}-healthrules.json"
+          vars:
+            hostname: "{{ inventory_hostname }}"
+            tier_name: "{{ tier_name | default('') }}"
+            controller_url: "{{ controller_url | default('') }}"
+            extension_configs: "{{ parsed_configs | default({}) }}"
+          delegate_to: localhost
+          when: health_rules | default(false)
+
+        - name: Copy updated JSON to Git repository
+          copy:
+            src: "/tmp/{{ inventory_hostname }}-healthrules.json"
+            dest: "/tmp/healthrules-repo/hosts/{{ inventory_hostname }}.json"
+          delegate_to: localhost
+          when: health_rules | default(false)
+
+        - name: Commit and push changes to Git
+          shell: |
+            cd /tmp/healthrules-repo
+            git add hosts/{{ inventory_hostname }}.json
+            git commit -m "Update AIX monitoring configuration for {{ inventory_hostname }}"
+            git push origin main
+          delegate_to: localhost
+          ignore_errors: yes
+          when: health_rules | default(false)
+
+    # Step 7: Cleanup temporary files
+    - name: "Step 7: Cleanup"
+      block:
+        - name: Remove temporary zip files
+          file:
+            path: "/tmp/{{ item.zip_file }}"
+            state: absent
+          loop: "{{ extensions_to_deploy }}"
+
+        - name: Remove temporary configuration files
+          file:
+            path: "/tmp/{{ inventory_hostname }}-healthrules.json"
+            state: absent
+          delegate_to: localhost
+          when: health_rules | default(false)
+
+  handlers:
+    - name: restart machine agent
+      shell: |
+        stopsrc -s appdynamics_machine_agent || true
+        sleep 5
+        startsrc -s appdynamics_machine_agent
