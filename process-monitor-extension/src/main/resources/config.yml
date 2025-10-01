@@ -1,0 +1,53 @@
+# AIX Process Monitor Extension Configuration
+
+# Metric prefix for AppDynamics
+metricPrefix: "Custom Metrics|AIX Process Monitor|"
+
+# URL to fetch centralized configuration (supports {inventory_hostname} placeholder)
+configUrl: "https://raw.githubusercontent.com/your-org/process-monitoring-configs/main/{inventory_hostname}.json"
+
+# Number of threads for processing
+numberOfThreads: 2
+
+# Task schedule in seconds
+taskSchedule:
+  numberOfThreads: 2
+  taskDelaySeconds: 60
+
+# Metric write helper configuration
+metricWriteHelper:
+  metricPrefix: "Custom Metrics|AIX Process Monitor|"
+  
+# Servers configuration (required by base monitor)
+servers:
+  - host: "localhost"
+    port: 8080
+    useSSL: false
+
+# AIX-specific commands configuration
+aixCommands:
+  process: "ps -eo pid,pcpu,pmem,rss,args"
+
+# Metrics configuration
+metrics:
+  - Running Instances:
+      alias: "Running Instances"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - CPU%:
+      multiplier: 1
+      alias: "CPU Percentage"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - Memory%:
+      alias: "Memory Percentage"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
+  - RSS:
+      alias: "Resident Set Size"
+      aggregationType: "AVERAGE"
+      timeRollUpType: "AVERAGE"
+      clusterRollUpType: "INDIVIDUAL"
