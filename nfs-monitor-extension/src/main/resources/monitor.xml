@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<monitor>
+    <name>AIXNFSMonitor</name>
+    <type>managed</type>
+    <description>AIX NFS Monitoring Extension</description>
+    <monitor-configuration></monitor-configuration>
+    <monitor-run-task>
+        <execution-style>periodic</execution-style>
+        <execution-frequency-in-seconds>60</execution-frequency-in-seconds>
+        <name>AIX NFS Monitor Run Task</name>
+        <display-name>AIX NFS Monitor Run Task</display-name>
+        <description>AIX NFS Monitor Run Task</description>
+        <type>java</type>
+        <java-task>
+            <classpath>aix-nfs-monitor.jar</classpath>
+            <impl-class>com.appdynamics.extensions.aix.nfs.AIXNFSMonitor</impl-class>
+            <task-arguments>
+                <argument name="config-file" is-required="true" default-value="monitors/AIXNFSMonitor/config.yml"/>
+            </task-arguments>
+            <jvm-options>
+            </jvm-options>
+        </java-task>
+    </monitor-run-task>
+</monitor>
