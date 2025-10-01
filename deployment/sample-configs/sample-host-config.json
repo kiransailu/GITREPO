@@ -1,0 +1,66 @@
+{
+  "process_monitor": {
+    "monitors": [
+      {
+        "assignment_group": "CAS",
+        "displayname": "Apache HTTP Server",
+        "regex": ".*/usr/sbin/httpd.*",
+        "health_rules": "enabled"
+      },
+      {
+        "assignment_group": "CAS", 
+        "displayname": "AppDynamics Machine Agent",
+        "regex": ".*machineagent.jar.*",
+        "health_rules": "enabled"
+      },
+      {
+        "assignment_group": "DATABASE",
+        "displayname": "Oracle Database",
+        "regex": ".*/oracle/.*pmon.*",
+        "health_rules": "enabled"
+      }
+    ]
+  },
+  "nfs_monitor": {
+    "NFS": [
+      {
+        "nfsMountsToMonitor": "/opt/appdynamics",
+        "displayname": "AppDynamics NFS Mount",
+        "assignment_group": "CAS",
+        "health_rules": "enabled"
+      },
+      {
+        "nfsMountsToMonitor": "/var/log/applications",
+        "displayname": "Application Logs NFS Mount", 
+        "assignment_group": "CAS",
+        "health_rules": "disabled"
+      }
+    ]
+  },
+  "service_monitor": {
+    "service": [
+      {
+        "assignment_group": "CAS",
+        "service": "httpd, sshd, cron"
+      },
+      {
+        "assignment_group": "DATABASE", 
+        "service": "oracle, db2"
+      }
+    ]
+  },
+  "monitored_files": [
+    {
+      "name": "/var/log/messages", 
+      "last_modified_check": 300
+    },
+    {
+      "name": "/opt/appdynamics/machine-agent/logs/machine-agent.log",
+      "last_modified_check": 60
+    },
+    {
+      "name": "/u01/app/oracle/diag/rdbms/orcl/orcl/trace/alert_orcl.log",
+      "last_modified_check": 180
+    }
+  ]
+}

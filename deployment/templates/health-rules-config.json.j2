@@ -1,0 +1,18 @@
+{
+  "hostname": "{{ hostname }}",
+  "controller_info": {
+    "tier_name": "{{ tier_name }}",
+    "controller_url": "{{ controller_url }}"
+  },
+  "process_monitor": {{ extension_configs.get('process_monitor', {}) | to_nice_json | default('{}') }},
+  "nfs_monitor": {{ extension_configs.get('nfs_monitor', {}) | to_nice_json | default('{}') }},
+  "service_monitor": {{ extension_configs.get('service_monitor', {}) | to_nice_json | default('{}') }},
+  "monitored_files": {{ extension_configs.get('monitored_files', []) | to_nice_json | default('[]') }},
+  "deployment_timestamp": "{{ ansible_date_time.iso8601 }}",
+  "deployed_extensions": [
+    "AIX Process Monitor",
+    "AIX NFS Monitor", 
+    "AIX Service Monitor",
+    "AIX File Change Monitor"
+  ]
+}
